@@ -1,18 +1,12 @@
 #!/bin/sh
+MODDIR="${0%/*}"
 
-dir="/data/adb/modules/bad_apple/frames-4fps" 
-sleep_time=0.25
-lastframe=876
-
+# ksu and apatch cant handle much shit
+# mmrl and magisk has no issues
+# you can even run 10 fps on them but 
+# the time skew becomes greater
 if [ -z $MMRL ] && { [ $KSU = true ] || [ $APATCH = true ]; }; then
-	# somehow even 2fps (0.5 sleep) fails on ksu and apatch)
-	dir="/data/adb/modules/bad_apple/frames-1fps" 
-	sleep_time=1
-	lastframe=219	
+	for i in $(cat $MODDIR/frames_1fps.txt); do echo $i | base64 -d ; sleep 1 ; done
+else
+	for i in $(cat $MODDIR/frames_4fps.txt); do echo $i | base64 -d ; sleep 0.25 ; done
 fi
-
-x=0; while [ $x -lt 10 ] ; do cat $dir/out000${x}.jpg.txt ; x=$((x+1)) ; echo "" ; sleep $sleep_time ; done
-x=10; while [ $x -lt 100 ] ; do cat $dir/out00${x}.jpg.txt ; x=$((x+1)) ; echo ""  ; sleep $sleep_time ; done
-x=100; while [ $x -lt $lastframe ] ; do cat $dir/out0${x}.jpg.txt ; x=$((x+1)) ; echo ""  ; sleep $sleep_time ; done
-
-
