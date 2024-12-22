@@ -9,8 +9,11 @@ fi
 
 # requires https://github.com/bryanyee33/KernelSU/commit/3da19277a2efadcc52e2b48c01329ee2c36712ef
 if [ -z "$MMRL" ] && [ "$KSU" = "true" ]; then
-	# actually has to be 0.033 but lets give it a bit of leeway
-	while read -r frame; do echo -en "$frame"; clear ; sleep 0.03 ; done < $MODDIR/frames_30fps.txt
+	while read -r frame; do 
+		clear
+		echo -en "$frame"	
+		usleep 33333
+	done < $MODDIR/frames_30fps.txt
 	exit 0	
 fi
 
@@ -22,16 +25,13 @@ if [ "$MMRL" = "true" ]; then
 	else
 		mmrl_clear() { am broadcast -a com.dergoogler.mmrl.CLEAR_TERMINAL > /dev/null 2>&1; }
 	fi
-	# actually has to be 0.033 but lets give it a bit of leeway
 	while read -r frame; do 
 		mmrl_clear
 		echo -en "$frame"
-		sleep 0.03
+		usleep 33333
 	done < $MODDIR/frames_30fps.txt
 	exit 0	
 fi
 
-while read -r frame; do echo -en "$frame" ; sleep 0.1 ; done < $MODDIR/frames_10fps.txt
+while read -r frame; do echo -en "$frame" ; usleep 100000 ; done < $MODDIR/frames_10fps.txt
 exit 0
-
-
