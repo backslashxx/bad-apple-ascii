@@ -12,7 +12,8 @@ if [ "$MMRL" = "true" ]; then
 fi
 
 # mmrl and kernelsu 11998 and above can clear action window
-if [ "$MMRL" = "true" ] || { [ "$KSU" = "true" ] && [ "$KSU_VER_CODE" -ge 11998 ]; }; then
+# ksu-next too https://github.com/rifsxd/KernelSU-Next/commit/f935077bb80337f578abaa2fd4f7ec1c08baa3ab
+if [ "$MMRL" = "true" ] || { [ "$KSU" = "true" ] && [ "$KSU_VER_CODE" -ge 11998 ]; } || { [ "$KSU_NEXT" = "true" ] && [ "$KSU_VER_CODE" -ge 12144 ]; }; then
         while read -r frame; do 
                 clear
                 echo -en "$frame"
