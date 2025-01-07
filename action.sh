@@ -1,9 +1,10 @@
 #!/bin/sh
 MODDIR="/data/adb/modules/bad_apple"
 
-# mmrl and kernelsu 11998 and above can clear action window
+# mmrl and ksu 11998, ksu-next 12144, apatch 11022 and above can clear action window
 if [ "$MMRL" = "true" ] || { [ "$KSU" = "true" ] && [ "$KSU_VER_CODE" -ge 11998 ]; } || 
-	{ [ "$KSU_NEXT" = "true" ] && [ "$KSU_VER_CODE" -ge 12144 ]; }; then
+	{ [ "$KSU_NEXT" = "true" ] && [ "$KSU_VER_CODE" -ge 12144 ]; } ||
+	{ [ "$APATCH" = "true" ] && [ "$APATCH_VER_CODE" -ge 11022 ]; }; then
         while read -r frame; do 
                 clear
                 echo -en "$frame"
