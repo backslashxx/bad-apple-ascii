@@ -1,0 +1,49 @@
+@import url('https://mui.kernelsu.org/mmrl/insets.css');
+@import url('https://mui.kernelsu.org/mmrl/colors.css');
+
+:root {
+    /* window inset */
+    --top-inset: var(--window-inset-top, 0px);
+    --bottom-inset: var(--window-inset-bottom, 0px);
+
+    /* Background colors */
+    --bg-primary: var(--background, #EDEDED);
+
+    /* Text colors */
+    --text-primary: var(--onSurface, #000);
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        /* Background colors */
+        --bg-primary: var(--background, #151515);
+
+        /* Text colors */
+        --text-primary: var(--onSurface, #eee);
+    }
+}
+
+body {
+    color: var(--text-primary);
+    background-color: var(--bg-primary);
+    padding-top: var(--top-inset);
+    padding-bottom: var(--bottom-inset);
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+}
+
+.output {
+    display: flex;
+    flex-grow: 1;
+    transform: scale(0.95);
+    flex-direction: column;
+}
+
+.output code {
+    margin: 0;
+    font-size: var(--code-font-size, 1em);
+}
