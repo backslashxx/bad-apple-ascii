@@ -3,6 +3,10 @@ const frameRate = 30;
 const linesPerFrame = 18;
 
 let lineElements = [];
+let isPaused = false;
+let currentFrame = 0;
+let totalFrames = 0;
+let overlayTimeout;
 
 /**
  * Execute shell command with ksu.exec
@@ -72,6 +76,20 @@ function updateFrame(lines) {
 }
 
 /**
+ * Update progress bar
+ * @param {number} currentFrame - Current frame number
+ * @param {number} totalFrames - Total number of frames
+ * @returns {void}
+ */
+function updateProgressBar(currentFrame, totalFrames) {
+    const progressBar = document.querySelector('.progress-bar');
+    if (progressBar) {
+        const progress = (currentFrame / totalFrames) * 100;
+        progressBar.style.width = `${progress}%`;
+    }
+}
+
+/**
  * Fetch bad apple ascii and parse each frame
  * @returns {void}
  */
@@ -85,16 +103,38 @@ function startBadApple() {
         })
         .then(data => {
             const frames = data.split('\n').filter(frame => frame.trim() !== '');
-            let currentFrame = 0;
+            totalFrames = frames.length;
+            currentFrame = 0;
 
             const displayNextFrame = () => {
-                if (currentFrame < frames.length) {
+                if (currentFrame < frames.length && !isPaused) {
                     const frameLines = frames[currentFrame].split('\\n');
                     updateFrame(frameLines);
+                    updateProgressBar(currentFrame + 1, totalFrames);
                     currentFrame++;
                     setTimeout(displayNextFrame, 1000 / frameRate);
                 }
             };
+
+            document.body.addEventListener('click', () => {
+                isPaused = !isPaused;
+                const currentIcon = document.getElementById(isPaused ? 'pause' : 'play');
+                currentIcon.style.opacity = '1';
+                currentIcon.style.transform = 'scale(2)';
+                document.getElementById('pause-icon').style.visibility = isPaused ? 'visible' : 'hidden';
+                document.getElementById('play-icon').style.visibility = isPaused ? 'hidden' : 'visible';
+                if (!isPaused) displayNextFrame();
+
+                if (overlayTimeout) {
+                    clearTimeout(overlayTimeout);
+                }
+                overlayTimeout = setTimeout(() => {
+                    currentIcon.style.opacity = '0';
+                    setTimeout(() => {
+                        currentIcon.style.transform = 'scale(1)';
+                    }, 200);
+                }, 200);
+            })
 
             initFrame();
             displayNextFrame();

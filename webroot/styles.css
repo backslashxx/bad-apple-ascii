@@ -11,6 +11,9 @@
 
     /* Text colors */
     --text-primary: var(--onSurface, #000);
+
+    /* Button colors */
+    --btn-primary: var(--primary, #007bff);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -40,7 +43,6 @@ body {
 
 .output {
     display: flex;
-    flex-grow: 1;
     transform: scale(0.95);
     flex-direction: column;
 }
@@ -48,4 +50,42 @@ body {
 .output code {
     margin: 0;
     font-size: var(--code-font-size, 1em);
+    user-select: none;
+}
+
+.icon-overlay {
+    position: absolute;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    background-color: rgba(0, 0, 0, 0.2);
+    opacity: 0;
+    transition: opacity 0.2s ease, transform 0.4s ease;
+
+    svg {
+        fill: white;
+        position: absolute;
+        visibility: hidden;
+    }
+}
+
+.progress-container {
+    position: fixed;
+    bottom: var(--bottom-inset);
+    left: 0;
+    width: 100%;
+    height: 10px;
+    background-color: rgba(0, 0, 0, 0.2);
+    z-index: 5;
+}
+
+.progress-bar {
+    height: 100%;
+    width: 0;
+    background-color: var(--btn-primary);
+    transition: width 0.1s linear;
 }
