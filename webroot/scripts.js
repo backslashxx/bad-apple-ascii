@@ -117,7 +117,8 @@ function startBadApple() {
  * @returns {void}
  */
 function calcFontSize() {
-    const shorterSide = Math.min(window.innerWidth, window.innerHeight);
+    const body = document.body;
+    const shorterSide = Math.min(body.clientWidth, body.clientHeight);
     const testElement = document.createElement('code');
     testElement.innerHTML = 'X'.repeat(30);
     testElement.style.visibility = 'hidden';
