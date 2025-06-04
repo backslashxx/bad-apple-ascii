@@ -1,71 +1,115 @@
+const outputElement = document.querySelector('.output');
+const frameRate = 30;
+const linesPerFrame = 18;
+
+let lineElements = [];
+
 /**
- * Spawns shell process with ksu spawn
+ * Execute shell command with ksu.exec
  * @param {string} command - The command to execute
- * @param {string[]} [args=[]] - Array of arguments to pass to the command
- * @param {string[]} [option=[]] - Array of options
+ * @param {Object} [options={}] - Options object containing:
  *   - cwd <string> - Current working directory of the child process
- *   - env <Object> - Environment key-value pairs
- * @returns {Object} A child process object with:
- *   - stdout: Stream for standard output
- *   - stderr: Stream for standard error
- *   - stdin: Stream for standard input
- *   - on(event, listener): Attach event listener ('exit', 'error')
- *   - emit(event, ...args): Emit events internally
+ *   - env {Object} - Environment key-value pairs
+ * @returns {Promise<Object>} Resolves with:
+ *   - errno {number} - Exit code of the command
+ *   - stdout {string} - Standard output from the command
+ *   - stderr {string} - Standard error from the command
  */
-function spawn(command, args = [], option = []) {
-    const child = {
-        listeners: {},
-        stdout: { listeners: {} },
-        stderr: { listeners: {} },
-        stdin: { listeners: {} },
-        on: function(event, listener) {
-            if (!this.listeners[event]) this.listeners[event] = [];
-            this.listeners[event].push(listener);
-        },
-        emit: function(event, ...args) {
-            if (this.listeners[event]) {
-                this.listeners[event].forEach(listener => listener(...args));
-            }
+function exec(command, options = {}) {
+    return new Promise((resolve, reject) => {
+        const callbackFuncName = `exec_callback_${Date.now()}`;
+        window[callbackFuncName] = (errno, stdout, stderr) => {
+            resolve({ errno, stdout, stderr });
+            cleanup(callbackFuncName);
+        };
+        function cleanup(successName) {
+            delete window[successName];
         }
-    };
-    ['stdout', 'stderr', 'stdin'].forEach(io => {
-        child[io].on = child.on.bind(child[io]);
-        child[io].emit = child.emit.bind(child[io]);
+        try {
+            ksu.exec(command, JSON.stringify(options), callbackFuncName);
+        } catch (error) {
+            reject(error);
+            cleanup(callbackFuncName);
+        }
     });
-    const callbackName = `spawn_callback_${Date.now()}`;
-    window[callbackName] = child;
-    child.on("exit", () => delete window[callbackName]);
-    try {
-        ksu.spawn(command, JSON.stringify(args), JSON.stringify(option), callbackName);
-    } catch (error) {
-        child.emit("error", error);
-        delete window[callbackName];
-    }
-    return child;
 }
 
-const outputElement = document.querySelector('.output');
-
 /**
- * Append text to web interface with optimized performance
- * @param {string} content - text to append to interface
+ * Show android toast message
+ * @param {string} message - The message to display in toast
  * @returns {void}
  */
-function appendOutput(content) {
-    if (outputElement.childNodes.length >= 17) outputElement.innerHTML = '';
-    const line = document.createElement('code');
-    line.textContent = content;
-    line.style.whiteSpace = 'pre';
-    outputElement.appendChild(line);
+export function toast(message) {
+    try {
+        ksu.toast(message);
+    } catch (error) {   
+        console.error("Error displaying toast:", error);
+    }
 }
 
 /**
- * Run action.sh and pass output to appendOutput
+ * Initialize empty frame for append
+ * @return {void}
+ */
+function initFrame() {
+    for (let i = 0; i < linesPerFrame; i++) {
+        const line = document.createElement('code');
+        line.style.whiteSpace = 'pre';
+        outputElement.appendChild(line);
+        lineElements.push(line);
+    }
+}
+
+/**
+ * Update content in frame
+ * @param {string[]} lines - array of lines to append to interface
+ * @returns {void}
+ */
+function updateFrame(lines) {
+    lines.forEach((lineContent, index) => {
+        lineElements[index].textContent = lineContent;
+    });
+}
+
+/**
+ * Fetch bad apple ascii and parse each frame
  * @returns {void}
  */
 function startBadApple() {
-    const scriptOutput = spawn('sh', ["/data/adb/modules/bad_apple/action.sh"], { env: { KSU_WEBUI: 'true' } });
-    scriptOutput.stdout.on('data', (data) => appendOutput(data));
+    fetch('frames_30fps.txt')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.text();
+        })
+        .then(data => {
+            const frames = data.split('\n').filter(frame => frame.trim() !== '');
+            let currentFrame = 0;
+
+            const displayNextFrame = () => {
+                if (currentFrame < frames.length) {
+                    const frameLines = frames[currentFrame].split('\\n');
+                    updateFrame(frameLines);
+                    currentFrame++;
+                    setTimeout(displayNextFrame, 1000 / frameRate);
+                }
+            };
+
+            initFrame();
+            displayNextFrame();
+        })
+        .catch(error => {
+            console.error('Error fetching frames:', error);
+            exec('ln -s /data/adb/modules/bad_apple/frames_30fps.txt /data/adb/modules/bad_apple/webroot/frames_30fps.txt')
+                .then(({errno}) => {
+                    if (errno === 0) {
+                        window.location.reload();
+                    } else {
+                        toast('Failed to load frames.');
+                    }
+                });
+        });
 }
 
 /**
