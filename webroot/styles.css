@@ -28,6 +28,8 @@ body {
     background-color: var(--bg-primary);
     padding-top: var(--top-inset);
     padding-bottom: var(--bottom-inset);
+    height: calc(100vh - var(--top-inset) - var(--bottom-inset));
+    width: 100%;
     margin: 0;
     display: flex;
     flex-direction: column;
