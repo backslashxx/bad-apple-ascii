@@ -1,6 +1,9 @@
 const outputElement = document.querySelector('.output');
+const moddir = '/data/adb/modules/bad_apple';
 const frameRate = 30;
-const linesPerFrame = 18;
+let asciiFile = 'frames_30fps.txt';
+let linesPerFrame = 18;
+let rowPerFrame = 30;
 
 let lineElements = [];
 let isPaused = false;
@@ -94,7 +97,7 @@ function updateProgressBar(currentFrame, totalFrames) {
  * @returns {void}
  */
 function startBadApple() {
-    fetch('frames_30fps.txt')
+    fetch(asciiFile)
         .then(response => {
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -141,7 +144,7 @@ function startBadApple() {
         })
         .catch(error => {
             console.error('Error fetching frames:', error);
-            exec('ln -s /data/adb/modules/bad_apple/frames_30fps.txt /data/adb/modules/bad_apple/webroot/frames_30fps.txt')
+            exec(`ln -s ${moddir}/${asciiFile} ${moddir}/webroot/${asciiFile}`)
                 .then(({errno}) => {
                     if (errno === 0) {
                         window.location.reload();
@@ -153,6 +156,24 @@ function startBadApple() {
 }
 
 /**
+ * Determin which file to use based on client width
+ * @returns {void}
+ */
+function calcDpi() {
+    // PC
+    if (window.matchMedia("(min-width: 1024px").matches) {
+        linesPerFrame = 34;
+        rowPerFrame = 60;
+        asciiFile = 'frames_30fps_60x32.txt';
+    // Tablet
+    } else if (window.matchMedia("(min-width: 768px").matches) {
+        linesPerFrame = 25;
+        rowPerFrame = 45;
+        asciiFile = 'frames_30fps_45x24.txt';
+    }
+}
+
+/**
  * Calculate the font size based on the shorter side of the window
  * @returns {void}
  */
@@ -160,7 +181,7 @@ function calcFontSize() {
     const body = document.body;
     const shorterSide = Math.min(body.clientWidth, body.clientHeight);
     const testElement = document.createElement('code');
-    testElement.innerHTML = 'X'.repeat(30);
+    testElement.innerHTML = 'X'.repeat(rowPerFrame);
     testElement.style.visibility = 'hidden';
     document.body.appendChild(testElement);
 
@@ -184,6 +205,7 @@ function calcFontSize() {
 
 // Initial load
 document.addEventListener('DOMContentLoaded', () => {
+    calcDpi();
     calcFontSize();
     startBadApple();
 });
